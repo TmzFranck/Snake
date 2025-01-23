@@ -1,73 +1,215 @@
-import curses
-import random
+import sys
+import time
+from random import randint
 
-class Snake(object):
-
-    def __init__(self, x, y, window):
-        pass
-        # initialize snake:
-        # - create head
-        # - create body
-        # - set starting x, y position
-
-    def eat_food(self, food):
-        pass
-        # remove food
-        # stretch body
-        # add score
-        # make the game faster
-
-    def update(self):
-        pass
-        # update snake location (move the snake)
-
-    def render(self):
-        pass
-        # draw the snake in the console using curses
-
-    def move(self):
-        pass
-        # move up down left right.
-
-class Body(object):
-    def __init__(self, x, y, char='#'):
-        self.x = x
-        self.y = y
-        self.char = char
-
-    @property
-    def coor(self):
-        return self.x, self.y
+import pygame
+from pygame.math import Vector2
 
 
+class Snake:
+    def __init__(self) -> None:
+        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        self.direction = Vector2(1, 0)
+        self.is_moving = False
+        self.snake_graphics = {
+            "snake_head_up": pygame.image.load('graphics/head_up.png').convert_alpha(),
+            "snake_head_down": pygame.image.load('graphics/head_down.png').convert_alpha(),
+            "snake_head_right": pygame.image.load('graphics/head_right.png').convert_alpha(),
+            "snake_head_left": pygame.image.load('graphics/head_left.png').convert_alpha(),
+            "snake_tail_up": pygame.image.load('graphics/tail_up.png').convert_alpha(),
+            "snake_tail_down": pygame.image.load('graphics/tail_down.png').convert_alpha(),
+            "snake_tail_right": pygame.image.load('graphics/tail_right.png').convert_alpha(),
+            "snake_tail_left": pygame.image.load('graphics/tail_left.png').convert_alpha(),
+            "snake_body_horizontal": pygame.image.load('graphics/body_horizontal.png').convert_alpha(),
+            "snake_body_vertical": pygame.image.load('graphics/body_vertical.png').convert_alpha(),
+            "snake_body_tr": pygame.image.load('graphics/body_tr.png').convert_alpha(),
+            "snake_body_tl": pygame.image.load('graphics/body_tl.png').convert_alpha(),
+            "snake_body_br": pygame.image.load('graphics/body_br.png').convert_alpha(),
+            "snake_body_bl": pygame.image.load('graphics/body_bl.png').convert_alpha()
+        }
+
+    def update_head_graphics(self, snake_rect: pygame.Rect) -> None:
+        if self.body[0] - self.body[1] == Vector2(-1, 0):
+            screen.blit(self.snake_graphics['snake_head_left'], snake_rect)
+        elif self.body[0] - self.body[1] == Vector2(1, 0):
+            screen.blit(self.snake_graphics['snake_head_right'], snake_rect)
+        elif self.body[0] - self.body[1] == Vector2(0, -1):
+            screen.blit(self.snake_graphics['snake_head_up'], snake_rect)
+        else:
+            screen.blit(self.snake_graphics['snake_head_down'], snake_rect)
+
+    def update_tail_graphics(self, snake_rect: pygame.Rect, body: Vector2, tail: Vector2) -> None:
+        if body - tail == Vector2(1, 0):
+            screen.blit(self.snake_graphics['snake_tail_left'], snake_rect)
+        elif body - tail == Vector2(-1, 0):
+            screen.blit(self.snake_graphics['snake_tail_right'], snake_rect)
+        elif body - tail == Vector2(0, 1):
+            screen.blit(self.snake_graphics['snake_tail_up'], snake_rect)
+        else:
+            screen.blit(self.snake_graphics['snake_tail_down'], snake_rect)
+
+    def update_body_graphics(self, snake_rect, body: Vector2, left: Vector2, right: Vector2) -> None:
+        if (body - left) + (body - right) == Vector2(1, 1):
+            screen.blit(self.snake_graphics['snake_body_tl'], snake_rect)
+        elif (body - left) + (body - right) == Vector2(1, -1):
+            screen.blit(self.snake_graphics['snake_body_bl'], snake_rect)
+        elif (body - left) + (body - right) == Vector2(-1, 1):
+            screen.blit(self.snake_graphics['snake_body_tr'], snake_rect)
+        elif (body - left) + (body - right) == Vector2(-1, -1):
+            screen.blit(self.snake_graphics['snake_body_br'], snake_rect)
+        elif body.x - left.x == 1 or body.x - right.x == 1:
+            screen.blit(self.snake_graphics['snake_body_horizontal'], snake_rect)
+        else:
+            screen.blit(self.snake_graphics['snake_body_vertical'], snake_rect)
 
 
-class Food(object):
-    def __init__(self, window, char='*'):
-        pass
-        # set random x, y position
+    def draw_snake(self, screen: pygame.Surface) -> None:
+        for index, block in enumerate(self.body):
+            snake_rect = pygame.Rect(int(block.x * HEIGHT), int(block.y * HEIGHT), HEIGHT, HEIGHT)
+            if index == 0:
+                self.update_head_graphics(snake_rect)
+            elif index == len(self.body) - 1:
+                self.update_tail_graphics(snake_rect, self.body[index - 1], block)
+            else:
+                self.update_body_graphics(snake_rect, block, self.body[index - 1], self.body[index + 1])
 
-    def render(self):
-        pass
-        # draw food to console
+    def move_snake(self) -> None:
+        if self.is_moving:
+            body_copy = self.body[:-1]
+            body_copy.insert(0, body_copy[0] + self.direction)
+            self.body = body_copy[:]
+        else:
+            self.is_moving = False
 
-    def randomize(self):
-        pass
-        # randomize x, y position
+    def add_block(self) -> None:
+        body_copy = self.body[:]
+        body_copy.insert(0, body_copy[0] + self.direction)
+        self.body = body_copy[:]
+
+    def reset(self) -> None:
+        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        self.direction = Vector2(1, 0)
+
+class Food:
+    def __init__(self) -> None:
+        self.x = randint(0, WIDTH-1)
+        self.y = randint(0, WIDTH-1)
+        self.pos = Vector2(self.x, self.y)
+        self.apple = pygame.image.load('graphics/apple.png').convert_alpha()
+
+    def draw_food(self, screen: pygame.Surface) -> None:
+        food_rect = pygame.Rect(int(self.pos.x * HEIGHT), int(self.pos.y * HEIGHT), HEIGHT, HEIGHT)
+        screen.blit(self.apple, food_rect)
+
+    def reset(self) -> None:
+        self.x = randint(0, WIDTH-1)
+        self.y = randint(0, WIDTH-1)
+        self.pos = Vector2(self.x, self.y)
+
+HEIGHT = 40
+WIDTH = 20
+screen = pygame.display.set_mode((HEIGHT*WIDTH, HEIGHT*WIDTH))
+pygame.display.set_caption("Snake Game")
+scree_color = (136, 255, 71)
+snake_color = (78, 68, 255)
+food_color = (255, 10, 110)
 
 
 
-def main():
-    while True:
-        pass
-        # clear screen
-        # display the snake
-        # display the food
-        # display the score
-        # listen to keypress event
-        # respond to keypress event
-        # stop the game if the head hits the body (eat itself)
+class Game:
+    def __init__(self) -> None:
+        pygame.init()
+        self.snake = Snake()
+        self.food = Food()
+        self.score = 0
+        self.font = pygame.font.Font("Font/PoetsenOne-Regular.ttf", 30)
 
 
-if __name__ == "__main__":
-    main()
+    def update(self) -> None:
+        self.snake.move_snake()
+        self.check_collision()
+        self.check_fail()
+
+    def draw_elements(self) -> None:
+        self.snake.draw_snake(screen)
+        self.food.draw_food(screen)
+        self.draw_score()
+
+    def check_collision(self) -> None:
+        if self.food.pos == self.snake.body[0]:
+            self.food.reset()
+            self.score += 1
+            for block in self.snake.body:
+                if block == self.food.pos:
+                    self.food = Food()
+            self.snake.add_block()
+
+    def game_over(self) -> None:
+        self.snake.reset()
+        self.food.reset()
+
+    def check_fail(self) -> None:
+        if (not 0 <= self.snake.body[0].x < WIDTH) or (not 0 <= self.snake.body[0].y < WIDTH):
+            self.game_over()
+            self.score = 0
+        for block in self.snake.body[1:]:
+            if block == self.snake.body[0]:
+                time.sleep(2)
+                self.game_over()
+                self.score = 0
+
+    def pause_game(self) -> None:
+        self.snake.is_moving = False
+
+    def resume_game(self) -> None:
+        self.snake.is_moving = True
+
+    def draw_score(self) -> None:
+        msg = self.font.render(f"Score: {self.score}", False, (255, 24, 9))
+        msg_rect = msg.get_rect()
+        msg_rect.topright = (WIDTH * HEIGHT , 0)
+        screen.blit(msg, msg_rect)
+
+
+    def run(self) -> None:
+        SCREEN_UPDATE = pygame.USEREVENT
+        pygame.time.set_timer(SCREEN_UPDATE, 150)
+        running = True
+        clock = pygame.time.Clock()
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == SCREEN_UPDATE:
+                    self.update()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        if self.snake.direction.y != 1:
+                            self.snake.direction = Vector2(0, -1)
+                    if event.key == pygame.K_DOWN:
+                        if self.snake.direction.y != -1:
+                            self.snake.direction = Vector2(0, 1)
+                    if event.key == pygame.K_LEFT:
+                        if self.snake.direction.x != 1:
+                            self.snake.direction = Vector2(-1, 0)
+                    if event.key == pygame.K_RIGHT:
+                        if self.snake.direction.x != -1:
+                            self.snake.direction = Vector2(1, 0)
+                    if event.key == pygame.K_SPACE:
+                        if self.snake.is_moving:
+                            self.pause_game()
+                        else:
+                            self.resume_game()
+
+
+            screen.fill(scree_color)
+            self.draw_elements()
+            pygame.display.flip()
+            clock.tick(60)
+
+        pygame.quit()
+        sys.exit()
+
+if __name__ == '__main__':
+    game = Game()
+    game.run()
