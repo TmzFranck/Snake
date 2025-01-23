@@ -63,7 +63,7 @@ class Snake:
             screen.blit(self.snake_graphics['snake_body_vertical'], snake_rect)
 
 
-    def draw_snake(self, screen: pygame.Surface) -> None:
+    def draw_snake(self) -> None:
         for index, block in enumerate(self.body):
             snake_rect = pygame.Rect(int(block.x * HEIGHT), int(block.y * HEIGHT), HEIGHT, HEIGHT)
             if index == 0:
@@ -97,7 +97,7 @@ class Food:
         self.pos = Vector2(self.x, self.y)
         self.apple = pygame.image.load('graphics/apple.png').convert_alpha()
 
-    def draw_food(self, screen: pygame.Surface) -> None:
+    def draw_food(self) -> None:
         food_rect = pygame.Rect(int(self.pos.x * HEIGHT), int(self.pos.y * HEIGHT), HEIGHT, HEIGHT)
         screen.blit(self.apple, food_rect)
 
@@ -131,8 +131,8 @@ class Game:
         self.check_fail()
 
     def draw_elements(self) -> None:
-        self.snake.draw_snake(screen)
-        self.food.draw_food(screen)
+        self.snake.draw_snake()
+        self.food.draw_food()
         self.draw_score()
 
     def check_collision(self) -> None:
