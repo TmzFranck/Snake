@@ -7,10 +7,13 @@ A classic snake game built using Python and Pygame.
 - **Snake Movement**: Control the snake using arrow keys (`Up`, `Down`, `Left`, `Right`).
 - **Food Collision**: Collect food to grow the snake and increase your score.
 - **Dynamic Graphics**: Unique graphics for the snake's head, body, and tail for a polished appearance.
+- **Difficulty Levels**: Choose between Easy, Medium, and Hard modes.
+- **Score Tracking**: Save your high scores with player names in a database.
 - **Game Over Conditions**:
   - Collision with the snake's own body.
   - Moving outside the game boundaries.
 - **Pause/Resume**: Pause and resume the game with the `Spacebar`.
+- **Mouse Support**: Select difficulty levels using mouse clicks.
 
 ## Requirements
 
@@ -66,17 +69,26 @@ project_directory/
 
 ## Controls
 
-| Key          | Action           |
-|--------------|------------------|
-| Arrow Keys   | Move the snake   |
-| Spacebar     | Pause/Resume     |
-| Close Button | Exit the game    |
+| Key/Action   | Description       |
+| ------------ | ----------------- |
+| Arrow Keys   | Move the snake    |
+| Spacebar     | Pause/Resume      |
+| Mouse Click  | Select options    |
+| R Key        | Restart game      |
+| Q Key        | Quit game         |
+| 1/2/3 Keys   | Select difficulty |
+| Close Button | Exit the game     |
 
 ## Game Mechanics
 
-1. The snake starts moving in the right direction by default.
-2. When the snake eats the food, it grows, and the score increases.
-3. If the snake collides with itself or the wall, the game resets, and the score is set to zero.
+1. Select a difficulty level at the start (Easy, Medium, or Hard).
+2. The snake starts moving in the right direction by default.
+3. When the snake eats the food, it grows, and the score increases.
+4. If the snake collides with itself or the wall, the game ends.
+5. After game over, you can:
+   - Press R to restart the game
+   - Press Q to quit and save your score
+6. Enter your name to save your score in the database.
 
 ## Customization
 
