@@ -1,14 +1,14 @@
 import sys
-import time
 from random import randint
 import pygame
-from pygame import Vector2
-from database import Player, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from pygame import Vector2
+from database import Player, Base
 
 
 class Snake:
+    """the snake class"""
     def __init__(self) -> None:
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
@@ -47,6 +47,7 @@ class Snake:
         }
 
     def update_head_graphics(self, snake_rect: pygame.Rect) -> None:
+        """update the head graphics"""
         if self.body[0] - self.body[1] == Vector2(-1, 0):
             screen.blit(self.snake_graphics["snake_head_left"], snake_rect)
         elif self.body[0] - self.body[1] == Vector2(1, 0):
@@ -59,6 +60,7 @@ class Snake:
     def update_tail_graphics(
         self, snake_rect: pygame.Rect, body: Vector2, tail: Vector2
     ) -> None:
+        """update the tail graphics"""
         if body - tail == Vector2(1, 0):
             screen.blit(self.snake_graphics["snake_tail_left"], snake_rect)
         elif body - tail == Vector2(-1, 0):
@@ -71,6 +73,7 @@ class Snake:
     def update_body_graphics(
         self, snake_rect, body: Vector2, left: Vector2, right: Vector2
     ) -> None:
+        """update the body graphics"""
         if (body - left) + (body - right) == Vector2(1, 1):
             screen.blit(self.snake_graphics["snake_body_tl"], snake_rect)
         elif (body - left) + (body - right) == Vector2(1, -1):
@@ -85,6 +88,7 @@ class Snake:
             screen.blit(self.snake_graphics["snake_body_vertical"], snake_rect)
 
     def draw_snake(self) -> None:
+        """draw the snake"""
         for index, block in enumerate(self.body):
             snake_rect = pygame.Rect(
                 int(block.x * HEIGHT), int(block.y * HEIGHT), HEIGHT, HEIGHT
@@ -99,6 +103,7 @@ class Snake:
                 )
 
     def move_snake(self) -> None:
+        """move the snake"""
         if self.is_moving:
             body_copy = self.body[:-1]
             body_copy.insert(0, body_copy[0] + self.direction)
@@ -107,16 +112,19 @@ class Snake:
             self.is_moving = False
 
     def add_block(self) -> None:
+        """add a block to the snake"""
         body_copy = self.body[:]
         body_copy.insert(0, body_copy[0] + self.direction)
         self.body = body_copy[:]
 
     def reset(self) -> None:
+        """reset the snake"""
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
 
 
 class Food:
+    """the food class"""
     def __init__(self) -> None:
         self.x = randint(0, WIDTH - 1)
         self.y = randint(0, WIDTH - 1)
@@ -124,12 +132,14 @@ class Food:
         self.apple = pygame.image.load("graphics/apple.png").convert_alpha()
 
     def draw_food(self) -> None:
+        """draw the food"""
         food_rect = pygame.Rect(
             int(self.pos.x * HEIGHT), int(self.pos.y * HEIGHT), HEIGHT, HEIGHT
         )
         screen.blit(self.apple, food_rect)
 
     def reset(self) -> None:
+        """reset the food"""
         self.x = randint(0, WIDTH - 1)
         self.y = randint(0, WIDTH - 1)
         self.pos = Vector2(self.x, self.y)
@@ -145,6 +155,7 @@ food_color = (255, 10, 110)
 
 
 class Game:
+    """the game class for the logic of the game"""
     def __init__(self) -> None:
         pygame.init()
         self.snake = Snake()
@@ -159,16 +170,19 @@ class Game:
         self.db_session = Session()
 
     def update(self) -> None:
+        """update the game"""
         self.snake.move_snake()
         self.check_collision()
         self.check_fail()
 
     def draw_elements(self) -> None:
+        """draw the elements of the game"""
         self.snake.draw_snake()
         self.food.draw_food()
         self.draw_score()
 
     def check_collision(self) -> None:
+        """check for collision"""
         if self.food.pos == self.snake.body[0]:
             self.food.reset()
             self.score += 1
@@ -178,10 +192,12 @@ class Game:
             self.snake.add_block()
 
     def game_over(self) -> None:
+        """game over"""
         self.snake.reset()
         self.food.reset()
 
     def check_fail(self) -> None:
+        """check for failure"""
         if (not 0 <= self.snake.body[0].x < WIDTH) or (
             not 0 <= self.snake.body[0].y < WIDTH
         ):
@@ -223,6 +239,7 @@ class Game:
                             sys.exit()
 
     def pause_game(self) -> None:
+        """pause the game"""
         self.snake.is_moving = False
         paused = True
         clock = pygame.time.Clock()
@@ -246,15 +263,18 @@ class Game:
             clock.tick(60)
 
     def resume_game(self) -> None:
+        """resume the game"""
         self.snake.is_moving = True
 
     def draw_score(self) -> None:
+        """draw the score"""
         msg = self.font.render(f"Score: {self.score}", False, (255, 24, 9))
         msg_rect = msg.get_rect()
         msg_rect.topright = (WIDTH * HEIGHT, 0)
         screen.blit(msg, msg_rect)
 
     def draw_game_over(self) -> None:
+        """draw the game over screen"""
         # Game Over text
         msg = self.font.render("Game Over", False, (255, 24, 9))
         msg_rect = msg.get_rect(center=(WIDTH * HEIGHT // 2, WIDTH * HEIGHT // 2 - 40))
@@ -281,6 +301,7 @@ class Game:
         screen.blit(quit_text, quit_rect)
 
     def show_level_menu(self) -> None:
+        """show the level menu"""
         selecting = True
         clock = pygame.time.Clock()
         levels = [(1, "Easy"), (2, "Medium"), (3, "Hard")]
@@ -344,6 +365,7 @@ class Game:
             clock.tick(60)
 
     def get_player_name(self) -> None:
+        """get the player name"""
         name = ""
         input_active = True
         clock = pygame.time.Clock()
@@ -382,6 +404,7 @@ class Game:
             clock.tick(60)
 
     def run(self) -> None:
+        """run the game loop"""
         self.show_level_menu()
         SCREEN_UPDATE = pygame.USEREVENT
         pygame.time.set_timer(SCREEN_UPDATE, self.game_speed)
