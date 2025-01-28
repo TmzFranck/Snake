@@ -9,6 +9,7 @@ from database import Player, Base
 
 class Snake:
     """the snake class"""
+
     def __init__(self) -> None:
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
@@ -125,6 +126,7 @@ class Snake:
 
 class Food:
     """the food class"""
+
     def __init__(self) -> None:
         self.x = randint(0, WIDTH - 1)
         self.y = randint(0, WIDTH - 1)
@@ -156,6 +158,7 @@ food_color = (255, 10, 110)
 
 class Game:
     """the game class for the logic of the game"""
+
     def __init__(self) -> None:
         pygame.init()
         self.snake = Snake()
@@ -299,6 +302,22 @@ class Game:
             center=(WIDTH * HEIGHT // 2, WIDTH * HEIGHT // 2 + 80)
         )
         screen.blit(quit_text, quit_rect)
+
+        list_player_score = self.font.render(
+            f"Top 5 Players: {self.get_top_players()}", False, (255, 24, 9)
+        )
+        list_player_score_rect = list_player_score.get_rect(
+            center=(WIDTH * HEIGHT // 2, WIDTH * HEIGHT // 2 + 120)
+        )
+        screen.blit(list_player_score, list_player_score_rect)
+
+    def get_top_players(self) -> str:
+        """get the top players"""
+        top_players = (
+            self.db_session.query(Player).order_by(Player.score.desc()).limit(5).all()
+        )
+        player_names = [player.name for player in top_players]
+        return ", ".join(player_names)
 
     def show_level_menu(self) -> None:
         """show the level menu"""
