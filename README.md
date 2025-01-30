@@ -23,7 +23,7 @@ A classic snake game built using Python and Pygame.
 Install the requirements using:
 
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 ## Folder Structure
